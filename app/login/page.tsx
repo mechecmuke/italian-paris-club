@@ -12,7 +12,8 @@ export default function LoginPage() {
 
     const { error } = await supabase.auth.signInWithOtp({
       email,
-      options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
+      options: {
+  emailRedirectTo: "https://italian-paris-club-x61o-mxlt3rmxr-mechecs-projects.vercel.app/auth/callback",}, 
     });
 
     setMsg(error ? error.message : "Controlla la tua email e clicca il link.");
