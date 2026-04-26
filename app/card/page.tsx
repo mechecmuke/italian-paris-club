@@ -21,7 +21,7 @@ export default function CardPage() {
 
       setEmail(user.email || "");
 
-      const url = `${window.location.origin}/verify?id=${user.id}`;
+      const url = `${window.location.origin}/verify/${user.id}`;
       const qrCode = await QRCode.toDataURL(url);
       setQr(qrCode);
     }
