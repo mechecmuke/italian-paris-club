@@ -1,62 +1,34 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "../lib/supabase";
 const QRCode = require("qrcode");
 
 export default function CardPage() {
   const [qr, setQr] = useState("");
-  const [email, setEmail] = useState("");
-  const [loading, setLoading] = useState(true);
 
   async function goToCheckout() {
-    try {
-      const res = await fetch("/api/checkout", {
-        method: "POST",
-      });
+    const res = await fetch("/api/checkout", {
+      method: "POST",
+    });
 
-      const data = await res.json();
+    const data = await res.json();
 
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        alert("Errore Stripe checkout");
-      }
-    } catch (err) {
-      console.error(err);
-      alert("Errore richiesta checkout");
+    if (data.url) {
+      window.location.href = data.url;
+    } else {
+      alert("Errore Stripe checkout");
     }
   }
 
   useEffect(() => {
     async function run() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
-        window.location.href = "/login";
-        return;
-      }
-
-      setEmail(user.email || "");
-
-      const url = `${window.location.origin}/verify/${user.id}`;
+      const url = `${window.location.origin}/verify/test-user`;
       const qrCode = await QRCode.toDataURL(url);
       setQr(qrCode);
-      setLoading(false);
     }
 
     run();
   }, []);
-
-  if (loading) {
-    return (
-      <main className="min-h-screen bg-[#0b0b0b] text-white flex items-center justify-center px-6">
-        <p>Caricamento...</p>
-      </main>
-    );
-  }
 
   return (
     <main className="min-h-screen bg-[#0b0b0b] text-white flex items-center justify-center px-6">
@@ -66,11 +38,11 @@ export default function CardPage() {
         </p>
 
         <h1 className="mt-4 text-3xl font-bold">
-          Tessera digitale
+          Tessera digitale TEST
         </h1>
 
         <p className="mt-3 text-white/60">
-          {email}
+          test@italianparisclub.com
         </p>
 
         <div className="mt-6 rounded-2xl bg-white p-4">
@@ -81,9 +53,7 @@ export default function CardPage() {
               className="mx-auto h-[260px] w-[260px]"
             />
           ) : (
-            <p className="text-black">
-              QR non disponibile
-            </p>
+            <p className="text-black">QR non disponibile</p>
           )}
         </div>
 
