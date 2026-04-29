@@ -7,21 +7,6 @@ const QRCode = require("qrcode");
 export default function CardPage() {
   const [qr, setQr] = useState("");
   const [email, setEmail] = useState("");
-  const [loading, setLoading] = useState(true);
-
-  async function goToCheckout() {
-    const res = await fetch("/api/checkout", {
-      method: "POST",
-    });
-
-    const data = await res.json();
-
-    if (data.url) {
-      window.location.href = data.url;
-    } else {
-      alert("Errore Stripe checkout");
-    }
-  }
 
   useEffect(() => {
     async function run() {
@@ -39,50 +24,44 @@ export default function CardPage() {
       const url = `${window.location.origin}/verify/${user.id}`;
       const qrCode = await QRCode.toDataURL(url);
       setQr(qrCode);
-      setLoading(false);
     }
 
     run();
   }, []);
 
-  if (loading) {
-    return (
-      <main className="min-h-screen bg-[#0b0b0b] text-white flex items-center justify-center px-6">
-        <p>Caricamento...</p>
-      </main>
-    );
+  // 🔥 QUESTA È LA FUNZIONE CHE TI MANCAVA
+  async function goToCheckout() {
+    const res = await fetch("/api/checkout", {
+      method: "POST",
+    });
+
+    const data = await res.json();
+
+    if (data.url) {
+      window.location.href = data.url;
+    } else {
+      alert("Errore Stripe");
+    }
   }
 
   return (
-    <main className="min-h-screen bg-[#0b0b0b] text-white flex items-center justify-center px-6">
-      <section className="w-full max-w-sm rounded-3xl border border-white/10 bg-white/5 p-8 text-center shadow-2xl">
-        <p className="text-sm uppercase tracking-[0.3em] text-white/50">
-          Italian Paris Club
-        </p>
+    <main className="min-h-screen bg-black text-white flex flex-col items-center justify-center gap-6">
+      <h1 className="text-2xl font-bold">Tessera</h1>
+      <p>{email}</p>
 
-        <h1 className="mt-4 text-3xl font-bold">Tessera digitale</h1>
+      {qr ? (
+        <img src={qr} alt="QR Code" className="w-[260px] h-[260px]" />
+      ) : (
+        <p>Caricamento...</p>
+      )}
 
-        <p className="mt-3 text-white/60">{email}</p>
-
-        <div className="mt-6 rounded-2xl bg-white p-4">
-          {qr ? (
-            <img
-              src={qr}
-              alt="QR Code"
-              className="mx-auto h-[260px] w-[260px]"
-            />
-          ) : (
-            <p className="text-black">QR non disponibile</p>
-          )}
-        </div>
-
-        <button
-          onClick={goToCheckout}
-          className="mt-6 w-full rounded-xl bg-white px-5 py-4 font-bold text-black"
-        >
-          Attiva abbonamento 9,99€/mese
-        </button>
-      </section>
+      {/* 🔥 BOTTONE STRIPE */}
+      <button
+        onClick={goToCheckout}
+        className="mt-6 w-[260px] rounded-xl bg-white px-5 py-4 font-bold text-black"
+      >
+        Attiva abbonamento 9,99€/mese
+      </button>
     </main>
   );
 }
