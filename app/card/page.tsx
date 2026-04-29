@@ -7,16 +7,28 @@ export default function CardPage() {
   const [qr, setQr] = useState("");
 
   async function goToCheckout() {
-    const res = await fetch("/api/checkout", {
-      method: "POST",
-    });
+    try {
+      const res = await fetch("/api/checkout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: "test@italianparisclub.com",
+        }),
+      });
 
-    const data = await res.json();
+      const data = await res.json();
+      console.log("Checkout response:", data);
 
-    if (data.url) {
-      window.location.href = data.url;
-    } else {
-      alert("Errore Stripe checkout");
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        alert("Errore Stripe checkout");
+      }
+    } catch (error) {
+      console.error("Checkout error:", error);
+      alert("Errore durante il checkout");
     }
   }
 
