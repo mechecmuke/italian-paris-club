@@ -13,7 +13,8 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
-  emailRedirectTo: "https://italian-paris-club-x61o-mxlt3rmxr-mechecs-projects.vercel.app/auth/callback",}, 
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
+      },
     });
 
     setMsg(error ? error.message : "Controlla la tua email e clicca il link.");
@@ -22,9 +23,13 @@ export default function LoginPage() {
   return (
     <main className="min-h-screen bg-[#0b0b0b] text-white flex items-center justify-center px-6">
       <section className="w-full max-w-sm rounded-3xl border border-white/10 bg-white/5 p-8 shadow-2xl">
-        <p className="text-sm uppercase tracking-[0.3em] text-white/50">Italian Paris Club</p>
+        <p className="text-sm uppercase tracking-[0.3em] text-white/50">
+          Italian Paris Club
+        </p>
         <h1 className="mt-4 text-3xl font-bold">Accedi alla tessera</h1>
-        <p className="mt-2 text-sm text-white/60">Inserisci la tua email. Riceverai un link di accesso.</p>
+        <p className="mt-2 text-sm text-white/60">
+          Inserisci la tua email. Riceverai un link di accesso.
+        </p>
 
         <form onSubmit={handleLogin} className="mt-8 grid gap-4">
           <input

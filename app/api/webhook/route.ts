@@ -1,66 +1,41 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { createClient } from "@supabase/supabase-js";
 
-export const runtime = "nodejs";
-
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!);
-
-const supabase = createClient(
-  "https://guamgznhixndshmzlttt.supabase.co",
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
-export async function POST(req: NextRequest) {
-  const body = await req.text();
-  const signature = req.headers.get("stripe-signature")!;
-
-  let event: Stripe.Event;
-
+export async function POST(req: Request) {
   try {
-    event = stripe.webhooks.constructEvent(
-      body,
-      signature,
-      process.env.STRIPE_WEBHOOK_SECRET!
-    );
-  } catch (err) {
-    console.error("Webhook error:", err);
-    return new NextResponse("Webhook Error", { status: 400 });
-  }
+    const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 
-  // ✅ PAGAMENTO COMPLETATO
-  if (event.type === "checkout.session.completed") {
-    const session = event.data.object as Stripe.Checkout.Session;
-
-    const email = session.customer_email;
-
-    if (email) {
-      await supabase.from("memberships").upsert({
-        email,
-        active: true,
-      });
+    if (!stripeSecretKey) {
+      return NextResponse.json(
+        { error: "STRIPE_SECRET_KEY mancante su Vercel" },
+        { status: 500 }
+      );
     }
-  }
 
-  // ❌ ABBONAMENTO CANCELLATO
-  if (event.type === "customer.subscription.deleted") {
-    const subscription = event.data.object as Stripe.Subscription;
+    const stripe = new Stripe(stripeSecretKey);
 
-    const customer = await stripe.customers.retrieve(
-      subscription.customer as string
+    const origin =
+      req.headers.get("origin") ||
+      "https://italian-paris-club-x61o-mxlt3rmxr-mechecs-projects.vercel.app";
+
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ["card"],
+      mode: "subscription",
+      line_items: [
+        {
+          price: "price_1T9N0AQfqMSPss50CsHDXPB9",
+          quantity: 1,
+        },
+      ],
+      success_url: `${origin}/card`,
+      cancel_url: `${origin}/card`,
+    });
+
+    return NextResponse.json({ url: session.url });
+  } catch (error: any) {
+    return NextResponse.json(
+      { error: error.message || "Stripe checkout error" },
+      { status: 500 }
     );
-
-    if (customer && !("deleted" in customer)) {
-      const email = customer.email;
-
-      if (email) {
-        await supabase
-          .from("memberships")
-          .update({ active: false })
-          .eq("email", email);
-      }
-    }
   }
-
-  return NextResponse.json({ received: true });
 }
