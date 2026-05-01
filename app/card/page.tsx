@@ -1,46 +1,66 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { supabase } from "../lib/supabase";
 const QRCode = require("qrcode");
 
 export default function CardPage() {
   const [qr, setQr] = useState("");
+  const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(true);
 
   async function goToCheckout() {
+    alert("Click bottone OK");
+
     try {
       const res = await fetch("/api/checkout", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email: "test@italianparisclub.com",
-        }),
       });
 
-      const data = await res.json();
-      console.log("Checkout response:", data);
+      alert("Risposta API: " + res.status);
 
-      if (data.url) {
-        window.location.href = data.url;
-      } else {
-        alert("Errore Stripe checkout");
+      const data = await res.json();
+
+      if (!data.url) {
+        alert("Stripe non ha mandato URL");
+        return;
       }
-    } catch (error) {
-      console.error("Checkout error:", error);
-      alert("Errore durante il checkout");
+
+      window.location.href = data.url;
+    } catch (err) {
+      alert("Errore checkout: " + err);
     }
   }
 
   useEffect(() => {
     async function run() {
-      const url = `${window.location.origin}/verify/test-user`;
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
+      if (!user) {
+        window.location.href = "/login";
+        return;
+      }
+
+      setEmail(user.email || "");
+
+      const url = `${window.location.origin}/verify/${user.id}`;
       const qrCode = await QRCode.toDataURL(url);
       setQr(qrCode);
+      setLoading(false);
     }
 
     run();
   }, []);
+
+  if (loading) {
+    return (
+      <main className="min-h-screen bg-[#0b0b0b] text-white flex items-center justify-center px-6">
+        <p>Caricamento...</p>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-[#0b0b0b] text-white flex items-center justify-center px-6">
@@ -49,13 +69,9 @@ export default function CardPage() {
           Italian Paris Club
         </p>
 
-        <h1 className="mt-4 text-3xl font-bold">
-          Tessera digitale TEST
-        </h1>
+        <h1 className="mt-4 text-3xl font-bold">Tessera digitale</h1>
 
-        <p className="mt-3 text-white/60">
-          test@italianparisclub.com
-        </p>
+        <p className="mt-3 text-white/60">{email}</p>
 
         <div className="mt-6 rounded-2xl bg-white p-4">
           {qr ? (
