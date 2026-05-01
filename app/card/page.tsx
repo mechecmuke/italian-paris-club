@@ -21,6 +21,8 @@ export default function CardPage() {
 
       const data = await res.json();
 
+      alert("Data ricevuta: " + JSON.stringify(data));
+
       if (!data.url) {
         alert("Stripe non ha mandato URL");
         return;
@@ -69,7 +71,7 @@ export default function CardPage() {
           Italian Paris Club
         </p>
 
-        <h1 className="mt-4 text-3xl font-bold">Tessera digitale</h1>
+        <h1 className="mt-4 text-3xl font-bold">Tessera digitale TEST</h1>
 
         <p className="mt-3 text-white/60">{email}</p>
 
